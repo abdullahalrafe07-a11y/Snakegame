@@ -4,12 +4,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class SnakeGame extends JFrame {
 
     public SnakeGame() {
 
-        setTitle("Snake Game - Week 2");
+        setTitle("Snake Game - Week 3");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
@@ -31,15 +32,22 @@ public class SnakeGame extends JFrame {
 
         LinkedList<Point> snake = new LinkedList<>();
 
+        Point food;
+
+        Random random = new Random();
+
         Direction direction = Direction.RIGHT;
         Direction nextDirection = Direction.RIGHT;
 
         Timer timer;
 
+        int score = 0;
+        boolean gameOver = false;
+
         GamePanel() {
 
             setPreferredSize(
-                new Dimension(COLS * SIZE, ROWS * SIZE)
+                new Dimension(COLS * SIZE, ROWS * SIZE + 50)
             );
 
             setBackground(Color.BLACK);
@@ -60,11 +68,19 @@ public class SnakeGame extends JFrame {
             direction = Direction.RIGHT;
             nextDirection = Direction.RIGHT;
 
+            score = 0;
+            gameOver = false;
+
+            createFood();
+
             timer = new Timer(120, e -> gameLoop());
             timer.start();
         }
 
         void gameLoop() {
+
+            if (gameOver)
+                return;
 
             direction = nextDirection;
 
@@ -83,18 +99,43 @@ public class SnakeGame extends JFrame {
             if (direction == Direction.RIGHT)
                 newHead.x++;
 
-            // Wall collision
+            // Collision
             if (newHead.x < 0 || newHead.x >= COLS ||
-                newHead.y < 0 || newHead.y >= ROWS) {
+                newHead.y < 0 || newHead.y >= ROWS ||
+                snake.contains(newHead)) {
 
+                gameOver = true;
                 timer.stop();
+                repaint();
                 return;
             }
 
             snake.addFirst(newHead);
-            snake.removeLast();
+
+            // Food
+            if (newHead.equals(food)) {
+
+                score += 10;
+                createFood();
+
+            } else {
+
+                snake.removeLast();
+            }
 
             repaint();
+        }
+
+        void createFood() {
+
+            do {
+
+                food = new Point(
+                    random.nextInt(COLS),
+                    random.nextInt(ROWS)
+                );
+
+            } while (snake.contains(food));
         }
 
         void setupKeys() {
@@ -139,6 +180,27 @@ public class SnakeGame extends JFrame {
 
             super.paintComponent(g);
 
+            // Score
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 18));
+
+            g.drawString(
+                "Score: " + score,
+                10,
+                25
+            );
+
+            // Food
+            g.setColor(Color.RED);
+
+            g.fillOval(
+                food.x * SIZE,
+                50 + food.y * SIZE,
+                SIZE,
+                SIZE
+            );
+
+            // Snake
             for (int i = 0; i < snake.size(); i++) {
 
                 Point p = snake.get(i);
@@ -151,9 +213,24 @@ public class SnakeGame extends JFrame {
 
                 g.fillRect(
                     p.x * SIZE,
-                    p.y * SIZE,
+                    50 + p.y * SIZE,
                     SIZE - 2,
                     SIZE - 2
+                );
+            }
+
+            // Game Over
+            if (gameOver) {
+
+                g.setColor(Color.WHITE);
+                g.setFont(
+                    new Font("Arial", Font.BOLD, 30)
+                );
+
+                g.drawString(
+                    "GAME OVER",
+                    210,
+                    280
                 );
             }
         }
