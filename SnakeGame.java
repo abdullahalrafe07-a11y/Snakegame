@@ -8,9 +8,11 @@ import java.util.Random;
 
 public class SnakeGame extends JFrame {
 
+    // ================= GAME WINDOW =================
+
     public SnakeGame() {
 
-        setTitle("Snake Game - Week 3");
+        setTitle("Snake Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
@@ -21,8 +23,12 @@ public class SnakeGame extends JFrame {
     }
 
     public static void main(String[] args) {
+
         new SnakeGame().setVisible(true);
     }
+
+
+    // ================= GAME PANEL =================
 
     static class GamePanel extends JPanel {
 
@@ -42,12 +48,20 @@ public class SnakeGame extends JFrame {
         Timer timer;
 
         int score = 0;
+
         boolean gameOver = false;
+        boolean paused = false;
+
+
+        // ================= BOARD SETUP =================
 
         GamePanel() {
 
             setPreferredSize(
-                new Dimension(COLS * SIZE, ROWS * SIZE + 50)
+                new Dimension(
+                    COLS * SIZE,
+                    ROWS * SIZE + 50
+                )
             );
 
             setBackground(Color.BLACK);
@@ -56,6 +70,9 @@ public class SnakeGame extends JFrame {
             setupKeys();
             startGame();
         }
+
+
+        // ================= START GAME =================
 
         void startGame() {
 
@@ -69,23 +86,39 @@ public class SnakeGame extends JFrame {
             nextDirection = Direction.RIGHT;
 
             score = 0;
+
             gameOver = false;
+            paused = false;
 
             createFood();
 
-            timer = new Timer(120, e -> gameLoop());
+            if (timer != null)
+                timer.stop();
+
+            timer = new Timer(
+                120,
+                e -> gameLoop()
+            );
+
             timer.start();
         }
 
+
+        // ================= GAME LOOP =================
+
         void gameLoop() {
 
-            if (gameOver)
+            if (gameOver || paused)
                 return;
 
             direction = nextDirection;
 
             Point head = snake.getFirst();
+
             Point newHead = new Point(head);
+
+
+            // Snake Movement
 
             if (direction == Direction.UP)
                 newHead.y--;
@@ -99,23 +132,34 @@ public class SnakeGame extends JFrame {
             if (direction == Direction.RIGHT)
                 newHead.x++;
 
-            // Collision
-            if (newHead.x < 0 || newHead.x >= COLS ||
-                newHead.y < 0 || newHead.y >= ROWS ||
+
+            // ================= COLLISION =================
+
+            if (newHead.x < 0 ||
+                newHead.x >= COLS ||
+                newHead.y < 0 ||
+                newHead.y >= ROWS ||
                 snake.contains(newHead)) {
 
                 gameOver = true;
+
                 timer.stop();
+
                 repaint();
+
                 return;
             }
 
+
             snake.addFirst(newHead);
 
-            // Food
+
+            // ================= FOOD + SCORE =================
+
             if (newHead.equals(food)) {
 
                 score += 10;
+
                 createFood();
 
             } else {
@@ -125,6 +169,9 @@ public class SnakeGame extends JFrame {
 
             repaint();
         }
+
+
+        // ================= CREATE FOOD =================
 
         void createFood() {
 
@@ -138,51 +185,108 @@ public class SnakeGame extends JFrame {
             } while (snake.contains(food));
         }
 
+
+        // ================= KEYBOARD CONTROL =================
+
         void setupKeys() {
 
             bindKey("UP", "up");
             bindKey("DOWN", "down");
             bindKey("LEFT", "left");
             bindKey("RIGHT", "right");
+
+            bindKey("P", "pause");
+            bindKey("R", "restart");
         }
+
 
         void bindKey(String key, String action) {
 
-            getInputMap(WHEN_IN_FOCUSED_WINDOW)
-                .put(KeyStroke.getKeyStroke(key), action);
+            getInputMap(
+                WHEN_IN_FOCUSED_WINDOW
+            ).put(
+                KeyStroke.getKeyStroke(key),
+                action
+            );
 
-            getActionMap().put(action, new AbstractAction() {
 
-                @Override
-                public void actionPerformed(ActionEvent e) {
+            getActionMap().put(
+                action,
+                new AbstractAction() {
 
-                    if (action.equals("up")
-                            && direction != Direction.DOWN)
-                        nextDirection = Direction.UP;
+                    @Override
+                    public void actionPerformed(
+                        ActionEvent e
+                    ) {
 
-                    if (action.equals("down")
-                            && direction != Direction.UP)
-                        nextDirection = Direction.DOWN;
+                        // Direction Control
 
-                    if (action.equals("left")
-                            && direction != Direction.RIGHT)
-                        nextDirection = Direction.LEFT;
+                        if (action.equals("up")
+                                && direction != Direction.DOWN)
 
-                    if (action.equals("right")
-                            && direction != Direction.LEFT)
-                        nextDirection = Direction.RIGHT;
+                            nextDirection = Direction.UP;
+
+
+                        if (action.equals("down")
+                                && direction != Direction.UP)
+
+                            nextDirection = Direction.DOWN;
+
+
+                        if (action.equals("left")
+                                && direction != Direction.RIGHT)
+
+                            nextDirection = Direction.LEFT;
+
+
+                        if (action.equals("right")
+                                && direction != Direction.LEFT)
+
+                            nextDirection = Direction.RIGHT;
+
+
+                        // ================= PAUSE =================
+
+                        if (action.equals("pause")
+                                && !gameOver)
+
+                            paused = !paused;
+
+
+                        // ================= RESTART =================
+
+                        if (action.equals("restart")
+                                && gameOver)
+
+                            startGame();
+
+
+                        repaint();
+                    }
                 }
-            });
+            );
         }
+
+
+        // ================= GAME DISPLAY =================
 
         @Override
         protected void paintComponent(Graphics g) {
 
             super.paintComponent(g);
 
+
             // Score
+
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 18));
+
+            g.setFont(
+                new Font(
+                    "Arial",
+                    Font.BOLD,
+                    18
+                )
+            );
 
             g.drawString(
                 "Score: " + score,
@@ -190,7 +294,9 @@ public class SnakeGame extends JFrame {
                 25
             );
 
+
             // Food
+
             g.setColor(Color.RED);
 
             g.fillOval(
@@ -200,7 +306,9 @@ public class SnakeGame extends JFrame {
                 SIZE
             );
 
+
             // Snake
+
             for (int i = 0; i < snake.size(); i++) {
 
                 Point p = snake.get(i);
@@ -219,12 +327,41 @@ public class SnakeGame extends JFrame {
                 );
             }
 
-            // Game Over
+
+            // ================= PAUSE =================
+
+            if (paused) {
+
+                g.setColor(Color.WHITE);
+
+                g.setFont(
+                    new Font(
+                        "Arial",
+                        Font.BOLD,
+                        30
+                    )
+                );
+
+                g.drawString(
+                    "PAUSED",
+                    250,
+                    300
+                );
+            }
+
+
+            // ================= GAME OVER =================
+
             if (gameOver) {
 
                 g.setColor(Color.WHITE);
+
                 g.setFont(
-                    new Font("Arial", Font.BOLD, 30)
+                    new Font(
+                        "Arial",
+                        Font.BOLD,
+                        30
+                    )
                 );
 
                 g.drawString(
@@ -232,11 +369,33 @@ public class SnakeGame extends JFrame {
                     210,
                     280
                 );
+
+
+                g.setFont(
+                    new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        18
+                    )
+                );
+
+                g.drawString(
+                    "Press R to Restart",
+                    220,
+                    315
+                );
             }
         }
     }
 
+
+    // ================= DIRECTION =================
+
     enum Direction {
-        UP, DOWN, LEFT, RIGHT
+
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT
     }
 }
