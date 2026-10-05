@@ -183,7 +183,7 @@ The game stops when a collision occurs. The final score is displayed and the pla
 
 16. Weekly Development
 The project was developed progressively over 10 weeks.
-Week 1 - Project Planning and Topic Selection
+Week 1  Project Planning and Topic Selection
 During Week 1, the project topic was selected and the basic project plan was prepared.
 The main objectives and scope of the Snake Game were defined. Java and Java Swing were selected as the main technologies.
 Work Completed
@@ -194,7 +194,7 @@ Work Completed
 •	Initial research
 •	Basic development planning
 
-Week 2 - Requirements and Game Rules
+Week 2  Requirements and Game Rules
 During Week 2, the project requirements and gameplay rules were defined.
 The required features and expected game behavior were identified. The basic game flow was also planned.
 Work Completed
@@ -205,7 +205,7 @@ Work Completed
 •	Basic gameplay flow
 •	Player interaction planning
 
-Week 3 - System Design
+Week 3  System Design
 During Week 3, the system design was prepared before starting the main implementation.
 Several design documents and diagrams were created to describe the structure and behavior of the game.
 Work Completed
@@ -217,7 +217,7 @@ Work Completed
 •	Basic system structure
 The design stage helped organize the development process before coding began.
 
-Week 4 - Initial Coding and Game Window
+Week 4  Initial Coding and Game Window
 During Week 4, the initial Java Swing implementation was started.
 The main game window and basic game board were created.
 Work Completed
@@ -227,7 +227,7 @@ Work Completed
 •	Basic game board
 •	Initial project structure
 
-Week 5 - Snake Movement and Keyboard Control
+Week 5  Snake Movement and Keyboard Control
 During Week 5, the basic snake structure and movement system were implemented.
 Keyboard controls were added so that the player could control the snake.
 Work Completed
@@ -237,7 +237,7 @@ Work Completed
 •	Arrow-key controls
 •	Direction handling
 
-Week 6 - Food Generation and Score System
+Week 6  Food Generation and Score System
 During Week 6, the food and scoring system were implemented.
 Random food generation was added, and the score was increased whenever the snake collected food.
 Work Completed
@@ -247,7 +247,7 @@ Work Completed
 •	Score display
 •	Basic gameplay interaction
 
-Week 7 - Snake Growth and Collision Detection
+Week 7  Snake Growth and Collision Detection
 During Week 7, snake growth logic and collision detection were implemented.
 The snake grows after eating food, and the game checks for both wall collision and self-collision.
 Work Completed
@@ -257,7 +257,7 @@ Work Completed
 •	Game Over logic
 •	Improved gameplay stability
 
-Week 8 - Integration, Game Over, Restart and UI Enhancements
+Week 8  Integration, Game Over, Restart and UI Enhancements
 During Week 8, the major game modules were integrated into a more complete version.
 Game Over display, final score display, restart functionality, and user interface improvements were added.
 Work Completed
@@ -269,7 +269,7 @@ Work Completed
 •	UI enhancements
 •	Final control integration
 
-Week 9 - Testing, Debugging, Optimization and Validation
+Week 9  Testing, Debugging, Optimization and Validation
 During Week 9, the complete gameplay system was tested and debugged.
 The main functionalities were checked to identify and fix possible problems. Pause and resume functionality was also finalized.
 Work Completed
@@ -283,7 +283,7 @@ Work Completed
 •	Game Over testing
 •	Final gameplay verification
 
-Week 10 - Final Documentation, Report and Presentation
+Week 10  Final Documentation, Report and Presentation
 During Week 10, the final project documentation and presentation materials were prepared.
 The completed project was reviewed and prepared for final demonstration and submission.
 Work Completed
