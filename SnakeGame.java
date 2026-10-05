@@ -8,11 +8,8 @@ import java.util.Random;
 
 public class SnakeGame extends JFrame {
 
-    // ================= GAME WINDOW =================
-
     public SnakeGame() {
-
-        setTitle("Snake Game");
+        setTitle("Snake Game - Week 9");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
@@ -23,14 +20,12 @@ public class SnakeGame extends JFrame {
     }
 
     public static void main(String[] args) {
-
-        new SnakeGame().setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            new SnakeGame().setVisible(true);
+        });
     }
 
-
-    // ================= GAME PANEL =================
-
-    static class GamePanel extends JPanel {
+    static class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         final int SIZE = 25;
         final int COLS = 24;
@@ -42,9 +37,6 @@ public class SnakeGame extends JFrame {
 
         Random random = new Random();
 
-        Direction direction = Direction.RIGHT;
-        Direction nextDirection = Direction.RIGHT;
-
         Timer timer;
 
         int score = 0;
@@ -52,29 +44,34 @@ public class SnakeGame extends JFrame {
         boolean gameOver = false;
         boolean paused = false;
 
+        enum Direction {
+            UP, DOWN, LEFT, RIGHT
+        }
 
-        // ================= BOARD SETUP =================
+        Direction direction = Direction.RIGHT;
 
         GamePanel() {
 
             setPreferredSize(
-                new Dimension(
-                    COLS * SIZE,
-                    ROWS * SIZE + 50
-                )
+                new Dimension(COLS * SIZE, ROWS * SIZE + 50)
             );
 
             setBackground(Color.BLACK);
-            setFocusable(true);
 
-            setupKeys();
-            startGame();
+            setFocusable(true);
+            addKeyListener(this);
+
+            initializeGame();
+
+            timer = new Timer(120, this);
+            timer.setCoalesce(true);
+            timer.start();
+
+            requestFocusInWindow();
         }
 
-
-        // ================= START GAME =================
-
-        void startGame() {
+        // Initialize Game
+        void initializeGame() {
 
             snake.clear();
 
@@ -82,97 +79,17 @@ public class SnakeGame extends JFrame {
             snake.add(new Point(9, 10));
             snake.add(new Point(8, 10));
 
-            direction = Direction.RIGHT;
-            nextDirection = Direction.RIGHT;
-
             score = 0;
+
+            direction = Direction.RIGHT;
 
             gameOver = false;
             paused = false;
 
             createFood();
-
-            if (timer != null)
-                timer.stop();
-
-            timer = new Timer(
-                120,
-                e -> gameLoop()
-            );
-
-            timer.start();
         }
 
-
-        // ================= GAME LOOP =================
-
-        void gameLoop() {
-
-            if (gameOver || paused)
-                return;
-
-            direction = nextDirection;
-
-            Point head = snake.getFirst();
-
-            Point newHead = new Point(head);
-
-
-            // Snake Movement
-
-            if (direction == Direction.UP)
-                newHead.y--;
-
-            if (direction == Direction.DOWN)
-                newHead.y++;
-
-            if (direction == Direction.LEFT)
-                newHead.x--;
-
-            if (direction == Direction.RIGHT)
-                newHead.x++;
-
-
-            // ================= COLLISION =================
-
-            if (newHead.x < 0 ||
-                newHead.x >= COLS ||
-                newHead.y < 0 ||
-                newHead.y >= ROWS ||
-                snake.contains(newHead)) {
-
-                gameOver = true;
-
-                timer.stop();
-
-                repaint();
-
-                return;
-            }
-
-
-            snake.addFirst(newHead);
-
-
-            // ================= FOOD + SCORE =================
-
-            if (newHead.equals(food)) {
-
-                score += 10;
-
-                createFood();
-
-            } else {
-
-                snake.removeLast();
-            }
-
-            repaint();
-        }
-
-
-        // ================= CREATE FOOD =================
-
+        // Create Food
         void createFood() {
 
             do {
@@ -185,217 +102,361 @@ public class SnakeGame extends JFrame {
             } while (snake.contains(food));
         }
 
+        // Move Snake
+        void moveSnake() {
 
-        // ================= KEYBOARD CONTROL =================
+            Point head = snake.getFirst();
 
-        void setupKeys() {
+            Point newHead = new Point(head);
 
-            bindKey("UP", "up");
-            bindKey("DOWN", "down");
-            bindKey("LEFT", "left");
-            bindKey("RIGHT", "right");
+            switch (direction) {
 
-            bindKey("P", "pause");
-            bindKey("R", "restart");
+                case UP:
+                    newHead.y--;
+                    break;
+
+                case DOWN:
+                    newHead.y++;
+                    break;
+
+                case LEFT:
+                    newHead.x--;
+                    break;
+
+                case RIGHT:
+                    newHead.x++;
+                    break;
+            }
+
+            // Wall Collision
+            if (newHead.x < 0 ||
+                newHead.x >= COLS ||
+                newHead.y < 0 ||
+                newHead.y >= ROWS) {
+
+                endGame();
+                return;
+            }
+
+            // Self Collision
+            if (snake.contains(newHead)) {
+
+                endGame();
+                return;
+            }
+
+            snake.addFirst(newHead);
+
+            // Food Collision
+            if (newHead.equals(food)) {
+
+                score++;
+
+                createFood();
+
+            } else {
+
+                snake.removeLast();
+            }
         }
 
+        // End Game
+        void endGame() {
 
-        void bindKey(String key, String action) {
+            gameOver = true;
 
-            getInputMap(
-                WHEN_IN_FOCUSED_WINDOW
-            ).put(
-                KeyStroke.getKeyStroke(key),
-                action
-            );
+            timer.stop();
 
-
-            getActionMap().put(
-                action,
-                new AbstractAction() {
-
-                    @Override
-                    public void actionPerformed(
-                        ActionEvent e
-                    ) {
-
-                        // Direction Control
-
-                        if (action.equals("up")
-                                && direction != Direction.DOWN)
-
-                            nextDirection = Direction.UP;
-
-
-                        if (action.equals("down")
-                                && direction != Direction.UP)
-
-                            nextDirection = Direction.DOWN;
-
-
-                        if (action.equals("left")
-                                && direction != Direction.RIGHT)
-
-                            nextDirection = Direction.LEFT;
-
-
-                        if (action.equals("right")
-                                && direction != Direction.LEFT)
-
-                            nextDirection = Direction.RIGHT;
-
-
-                        // ================= PAUSE =================
-
-                        if (action.equals("pause")
-                                && !gameOver)
-
-                            paused = !paused;
-
-
-                        // ================= RESTART =================
-
-                        if (action.equals("restart")
-                                && gameOver)
-
-                            startGame();
-
-
-                        repaint();
-                    }
-                }
-            );
+            repaint();
         }
 
+        @Override
+        public void actionPerformed(ActionEvent e) {
 
-        // ================= GAME DISPLAY =================
+            if (!gameOver && !paused) {
+
+                moveSnake();
+
+                repaint();
+            }
+        }
 
         @Override
         protected void paintComponent(Graphics g) {
 
             super.paintComponent(g);
 
-
-            // Score
-
-            g.setColor(Color.WHITE);
-
-            g.setFont(
-                new Font(
-                    "Arial",
-                    Font.BOLD,
-                    18
-                )
-            );
-
-            g.drawString(
-                "Score: " + score,
-                10,
-                25
-            );
-
-
-            // Food
-
-            g.setColor(Color.RED);
-
-            g.fillOval(
-                food.x * SIZE,
-                50 + food.y * SIZE,
-                SIZE,
-                SIZE
-            );
-
-
-            // Snake
-
+            // Draw Snake
             for (int i = 0; i < snake.size(); i++) {
 
                 Point p = snake.get(i);
 
-                g.setColor(
-                    i == 0
-                    ? Color.PINK
-                    : new Color(50, 180, 50)
-                );
+                if (i == 0) {
+
+                    g.setColor(Color.PINK);
+
+                } else {
+
+                    g.setColor(new Color(50, 180, 50));
+                }
 
                 g.fillRect(
                     p.x * SIZE,
-                    50 + p.y * SIZE,
+                    p.y * SIZE,
                     SIZE - 2,
                     SIZE - 2
                 );
             }
 
+            // Draw Food
+            g.setColor(Color.RED);
 
-            // ================= PAUSE =================
+            g.fillOval(
+                food.x * SIZE,
+                food.y * SIZE,
+                SIZE - 2,
+                SIZE - 2
+            );
+            // Score Background
+            g.setColor(Color.DARK_GRAY);
 
-            if (paused) {
+             g.fillRect(
+            0,
+             ROWS * SIZE,
+             COLS * SIZE,
+              50
+             );
+            // Draw Score
+            g.setColor(Color.WHITE);
 
-                g.setColor(Color.WHITE);
+            g.setFont(
+                new Font("Arial", Font.BOLD, 18)
+            );
 
-                g.setFont(
-                    new Font(
-                        "Arial",
-                        Font.BOLD,
-                        30
-                    )
+            g.drawString(
+                "Score: " + score,
+                10,
+                ROWS * SIZE + 32
+            );
+
+            // Draw Pause Screen
+            if (paused && !gameOver) {
+
+                g.setColor(
+                    new Color(0, 0, 0, 170)
                 );
 
+                g.fillRect(
+                    0,
+                    0,
+                    COLS * SIZE,
+                    ROWS * SIZE
+                );
+
+                g.setColor(Color.YELLOW);
+
+                g.setFont(
+                    new Font("Arial", Font.BOLD, 36)
+                );
+
+                String pauseText = "PAUSED";
+
+                FontMetrics fm = g.getFontMetrics();
+
+                int x =
+                    (COLS * SIZE - fm.stringWidth(pauseText)) / 2;
+
+                int y =
+                    (ROWS * SIZE) / 2;
+
                 g.drawString(
-                    "PAUSED",
-                    250,
-                    300
+                    pauseText,
+                    x,
+                    y
+                );
+
+                g.setFont(
+                    new Font("Arial", Font.PLAIN, 16)
+                );
+
+                String resumeText =
+                    "Press P to Resume";
+
+                FontMetrics fm2 = g.getFontMetrics();
+
+                int x2 =
+                    (COLS * SIZE - fm2.stringWidth(resumeText)) / 2;
+
+                g.drawString(
+                    resumeText,
+                    x2,
+                    y + 35
                 );
             }
 
-
-            // ================= GAME OVER =================
-
+            // Game Over Screen
             if (gameOver) {
 
+                g.setColor(
+                    new Color(0, 0, 0, 170)
+                );
+
+                g.fillRect(
+                    0,
+                    0,
+                    COLS * SIZE,
+                    ROWS * SIZE
+                );
+
+                g.setColor(Color.RED);
+
+                g.setFont(
+                    new Font("Arial", Font.BOLD, 36)
+                );
+
+                String message = "GAME OVER";
+
+                FontMetrics fm = g.getFontMetrics();
+
+                int x =
+                    (COLS * SIZE - fm.stringWidth(message)) / 2;
+
+                int y =
+                    (ROWS * SIZE) / 2 - 20;
+
+                g.drawString(
+                    message,
+                    x,
+                    y
+                );
+
+                // Final Score
                 g.setColor(Color.WHITE);
 
                 g.setFont(
-                    new Font(
-                        "Arial",
-                        Font.BOLD,
-                        30
-                    )
+                    new Font("Arial", Font.BOLD, 20)
                 );
+
+                String scoreText =
+                    "Final Score: " + score;
+
+                FontMetrics fm2 = g.getFontMetrics();
+
+                int x2 =
+                    (COLS * SIZE - fm2.stringWidth(scoreText)) / 2;
 
                 g.drawString(
-                    "GAME OVER",
-                    210,
-                    280
+                    scoreText,
+                    x2,
+                    y + 40
                 );
 
-
+                // Restart Instruction
                 g.setFont(
-                    new Font(
-                        "Arial",
-                        Font.PLAIN,
-                        18
-                    )
+                    new Font("Arial", Font.PLAIN, 16)
                 );
 
+                String restartText =
+                    "Press R to Restart";
+
+                FontMetrics fm3 = g.getFontMetrics();
+
+                int x3 =
+                    (COLS * SIZE - fm3.stringWidth(restartText)) / 2;
+
                 g.drawString(
-                    "Press R to Restart",
-                    220,
-                    315
+                    restartText,
+                    x3,
+                    y + 70
                 );
             }
         }
-    }
 
+        // Restart Game
+        void restartGame() {
 
-    // ================= DIRECTION =================
+            initializeGame();
 
-    enum Direction {
+            timer.setDelay(120);
 
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
+            timer.start();
+
+            requestFocusInWindow();
+
+            repaint();
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+            switch (e.getKeyCode()) {
+
+                case KeyEvent.VK_UP:
+
+                    if (direction != Direction.DOWN) {
+
+                        direction = Direction.UP;
+                    }
+
+                    break;
+
+                case KeyEvent.VK_DOWN:
+
+                    if (direction != Direction.UP) {
+
+                        direction = Direction.DOWN;
+                    }
+
+                    break;
+
+                case KeyEvent.VK_LEFT:
+
+                    if (direction != Direction.RIGHT) {
+
+                        direction = Direction.LEFT;
+                    }
+
+                    break;
+
+                case KeyEvent.VK_RIGHT:
+
+                    if (direction != Direction.LEFT) {
+
+                        direction = Direction.RIGHT;
+                    }
+
+                    break;
+
+                // Pause / Resume
+                case KeyEvent.VK_P:
+
+                    if (!gameOver) {
+
+                        paused = !paused;
+
+                        repaint();
+                    }
+
+                    break;
+
+                // Restart
+                case KeyEvent.VK_R:
+
+                    if (gameOver) {
+
+                        restartGame();
+                    }
+
+                    break;
+            }
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
     }
 }
